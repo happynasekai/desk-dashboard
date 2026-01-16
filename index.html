@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desk Dashboard</title>
+    <style>
+        /* --- Base & Reset --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #1a1a1a; /* マットなダークグレー */
+            color: #e0e0e0; /* オフホワイト */
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- Scaling Container --- */
+        /* ここがポイントです。
+           中身は常に「1280x720」で作られていると思い込ませ、
+           外側からJavaScriptで倍率を変えて表示させます。
+        */
+        #app-container {
+            width: 1280px;  /* 基準サイズ (Monitor 2) */
+            height: 720px;  /* 基準サイズ */
+            display: flex;
+            /* 縮小拡大の基準点を画面中央に設定 */
+            transform-origin: center center;
+        }
+
+        /* --- Layout (内部は1280x720の世界) --- */
+        
+        /* 左側：時計エリア */
+        .clock-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-right: 1px solid #333;
+            padding: 2rem;
+        }
+
+        /* 右側：カレンダーエリア */
+        .calendar-section {
+            flex: 1.2;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* --- Clock Styles --- */
+        .clock-date {
+            font-size: 1.5rem;
+            color: #888;
+            margin-bottom: 1rem;
+            letter-spacing: 0.05em;
+        }
+
+        .clock-time {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 5rem;
+            font-weight: bold;
+            color: #f0f0f0;
+            letter-spacing: 0.05em;
+        }
+
+        /* --- Calendar Styles --- */
+        .cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            width: 100%;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cal-title {
+            font-size: 2.2rem;
+            font-weight: normal;
+            letter-spacing: 0.1em;
+        }
+
+        .cal-controls button {
+            background: none;
+            border: 1px solid #444;
+            color: #aaa;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            margin-left: 0.5rem;
+        }
+
+        .cal-controls button:hover {
+            border-color: #888;
+            color: #fff;
+        }
+
+        .cal-controls button#today-btn {
+            border-color: #555;
+            background-color: #252525;
+        }
+
+        /* カレンダーグリッド */
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+            text-align: center;
+            width: 100%;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cal-cell {
+            padding: 1.2rem 0;
+            font-size: 1.5rem;
+            color: #bbb;
+            border-radius: 6px;
+            position: relative;
+        }
+
+        /* 曜日ヘッダー */
+        .day-name {
+            font-size: 1.2rem;
+            color: #666;
+            padding-bottom: 1rem;
+        }
+
+        /* 今日の日付の強調 */
+        .is-today {
+            background-color: #e0e0e0;
+            color: #1a1a1a !important;
+            font-weight: bold;
+        }
+
+        /* 土日・祝日の色 */
+        .sunday, .holiday { color: #cf6679; }
+        .saturday { color: #64b5f6; }
+
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        
+        <div class="clock-section">
+            <div id="date-display" class="clock-date"></div>
+            <div id="time-display" class="clock-time"></div>
+        </div>
+
+        <div class="calendar-section">
+            <div class="cal-header">
+                <h2 id="cal-title" class="cal-title"></h2>
+                <div class="cal-controls">
+                    <button id="prev-btn">&lt;</button>
+                    <button id="next-btn">&gt;</button>
+                    <button id="today-btn">今日</button>
+                </div>
+            </div>
+            <div id="cal-grid" class="cal-grid">
+                </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 0. オートスケーリング機能 ---
+        function fitToScreen() {
+            const baseWidth = 1280;
+            const baseHeight = 720;
+            
+            // 画面の幅・高さ
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+
+            // 縦横どちらかがはみ出さないように倍率を計算 (Fit)
+            const scaleX = windowWidth / baseWidth;
+            const scaleY = windowHeight / baseHeight;
+            const scale = Math.min(scaleX, scaleY);
+
+            // コンテナに倍率を適用
+            const container = document.getElementById('app-container');
+            container.style.transform = `scale(${scale})`;
+        }
+
+        // 初回ロード時と、画面サイズ変更時に実行
+        window.addEventListener('resize', fitToScreen);
+        window.addEventListener('load', fitToScreen);
+
+
+        // --- 1. 時計機能 ---
+        function updateClock() {
+            const now = new Date();
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            const dateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日(${days[now.getDay()]})`;
+            
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            const timeStr = `${h}:${m}:${s}`;
+
+            document.getElementById('date-display').textContent = dateStr;
+            document.getElementById('time-display').textContent = timeStr;
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- 2. 祝日判定ロジック ---
+        function getJapaneseHolidays(year, month) {
+            const holidays = {}; 
+            const fixedHolidays = [
+                { m: 0, d: 1, name: "元日" }, { m: 1, d: 11, name: "建国記念の日" }, { m: 1, d: 23, name: "天皇誕生日" },
+                { m: 3, d: 29, name: "昭和の日" }, { m: 4, d: 3, name: "憲法記念日" }, { m: 4, d: 4, name: "みどりの日" },
+                { m: 4, d: 5, name: "こどもの日" }, { m: 7, d: 11, name: "山の日" }, { m: 10, d: 3, name: "文化の日" },
+                { m: 10, d: 23, name: "勤労感謝の日" }
+            ];
+
+            function getNthMonday(y, m, n) {
+                const firstDay = new Date(y, m, 1).getDay();
+                const firstMonday = 1 + (8 - firstDay) % 7;
+                return firstMonday + (n - 1) * 7;
+            }
+            const happyMondays = [
+                { m: 0, n: 2, name: "成人の日" }, { m: 6, n: 3, name: "海の日" },
+                { m: 8, n: 3, name: "敬老の日" }, { m: 9, n: 2, name: "スポーツの日" }
+            ];
+
+            function getEquinoxDay(y, type) {
+                if (type === 'spring') return Math.floor(20.8431 + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4));
+                return Math.floor(23.2488 + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4));
+            }
+
+            fixedHolidays.forEach(h => { if (h.m === month) holidays[h.d] = h.name; });
+            happyMondays.forEach(h => { if (h.m === month) holidays[getNthMonday(year, month, h.n)] = h.name; });
+            if (month === 2) holidays[getEquinoxDay(year, 'spring')] = "春分の日";
+            if (month === 8) holidays[getEquinoxDay(year, 'autumn')] = "秋分の日";
+
+            const lastDay = new Date(year, month + 1, 0).getDate();
+            for (let d = 1; d <= lastDay; d++) {
+                if (holidays[d]) {
+                    const date = new Date(year, month, d);
+                    if (date.getDay() === 0) {
+                        let nextDay = d + 1;
+                        while (holidays[nextDay] && nextDay <= lastDay) nextDay++;
+                        if (nextDay <= lastDay) holidays[nextDay] = "振替休日";
+                    }
+                }
+            }
+
+            for (let d = 2; d < lastDay; d++) {
+                if (holidays[d-1] && holidays[d+1] && !holidays[d]) {
+                    const date = new Date(year, month, d);
+                    if (date.getDay() !== 0) holidays[d] = "国民の休日";
+                }
+            }
+            return holidays;
+        }
+
+        // --- 3. カレンダー描画機能 ---
+        const today = new Date();
+        let currentYear = today.getFullYear();
+        let currentMonth = today.getMonth();
+
+        const calTitle = document.getElementById('cal-title');
+        const calGrid = document.getElementById('cal-grid');
+
+        function renderCalendar(year, month) {
+            calGrid.innerHTML = '';
+            calTitle.textContent = `${year}年 ${month + 1}月`;
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const holidays = getJapaneseHolidays(year, month);
+            
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+            dayNames.forEach((d, index) => {
+                const div = document.createElement('div');
+                div.className = 'day-name';
+                if (index === 0) div.classList.add('sunday');
+                if (index === 6) div.classList.add('saturday');
+                div.textContent = d;
+                calGrid.appendChild(div);
+            });
+
+            for (let i = 0; i < firstDay.getDay(); i++) {
+                const div = document.createElement('div');
+                div.className = 'cal-cell';
+                calGrid.appendChild(div);
+            }
+
+            for (let d = 1; d <= lastDay.getDate(); d++) {
+                const div = document.createElement('div');
+                div.className = 'cal-cell';
+                div.textContent = d;
+
+                const checkDate = new Date(year, month, d);
+                const dayOfWeek = checkDate.getDay();
+                const isHoliday = holidays[d] !== undefined;
+
+                if (dayOfWeek === 0) div.classList.add('sunday');
+                else if (dayOfWeek === 6) div.classList.add('saturday');
+                if (isHoliday) div.classList.add('holiday');
+
+                if (year === today.getFullYear() && month === today.getMonth() && d === today.getDate()) {
+                    div.classList.add('is-today');
+                }
+                calGrid.appendChild(div);
+            }
+        }
+
+        document.getElementById('prev-btn').addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+            renderCalendar(currentYear, currentMonth);
+        });
+        document.getElementById('next-btn').addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+            renderCalendar(currentYear, currentMonth);
+        });
+        document.getElementById('today-btn').addEventListener('click', () => {
+            currentYear = today.getFullYear();
+            currentMonth = today.getMonth();
+            renderCalendar(currentYear, currentMonth);
+        });
+
+        renderCalendar(currentYear, currentMonth);
+    </script>
+</body>
+</html>
