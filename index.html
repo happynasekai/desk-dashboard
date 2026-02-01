@@ -25,21 +25,21 @@
         }
 
         /* --- Scaling Container --- */
-        /* ここがポイントです。
-           中身は常に「1280x720」で作られていると思い込ませ、
-           外側からJavaScriptで倍率を変えて表示させます。
-        */
+        /* 基準サイズ: 1280x720 (Monitor 2) */
         #app-container {
-            width: 1280px;  /* 基準サイズ (Monitor 2) */
-            height: 720px;  /* 基準サイズ */
+            width: 1280px;
+            height: 720px;
+            /* ★iPhone対応: 勝手な縮小・改行を防ぐ強制サイズ指定 */
+            min-width: 1280px;
+            min-height: 720px;
+            
             display: flex;
-            /* 縮小拡大の基準点を画面中央に設定 */
             transform-origin: center center;
         }
 
-        /* --- Layout (内部は1280x720の世界) --- */
+        /* --- Layout --- */
         
-        /* 左側：時計エリア */
+        /* 左側：時計エリア (天気削除により元の広さに戻す) */
         .clock-section {
             flex: 1;
             display: flex;
@@ -65,6 +65,7 @@
             color: #888;
             margin-bottom: 1rem;
             letter-spacing: 0.05em;
+            white-space: nowrap; /* iPhoneでの改行防止 */
         }
 
         .clock-time {
@@ -73,6 +74,7 @@
             font-weight: bold;
             color: #f0f0f0;
             letter-spacing: 0.05em;
+            white-space: nowrap; /* iPhoneでの改行防止 */
         }
 
         /* --- Calendar Styles --- */
@@ -91,6 +93,11 @@
             font-size: 2.2rem;
             font-weight: normal;
             letter-spacing: 0.1em;
+            white-space: nowrap; /* iPhoneでの改行防止 */
+        }
+
+        .cal-controls {
+            white-space: nowrap; /* ボタンエリアの改行防止 */
         }
 
         .cal-controls button {
@@ -133,6 +140,7 @@
             color: #bbb;
             border-radius: 6px;
             position: relative;
+            white-space: nowrap; /* iPhoneでの改行防止 */
         }
 
         /* 曜日ヘッダー */
