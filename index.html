@@ -36,7 +36,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center; /* 垂直方向中央寄せ */
-            align-items: flex-start; /* 水平方向左寄せ */
+            align-items: center; /* ★水平方向も中央寄せに変更 (全体の中央揃え) */
             border-right: 1px solid #333;
             background-color: #1e1e1e;
         }
@@ -47,14 +47,16 @@
             display: flex;
             flex-direction: column;
             gap: 4rem;
+            align-items: center; /* ★ラッパー内も中央揃え */
         }
 
         /* 1. Clock Area */
         .clock-area {
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
+            align-items: center; /* ★ここがポイント: 日付と時刻を中央揃え */
             color: #ffffff; /* 完全な白 */
+            width: 100%;
         }
         .clock-date {
             font-size: 1.8rem;
@@ -78,6 +80,7 @@
             grid-template-columns: 1.2fr 1.0fr 1.8fr 1.0fr; 
             align-items: center;
             width: 100%;
+            /* グリッド自体は親の幅いっぱいに広がる */
         }
 
         /* 2. Today's Weather Area */
@@ -90,7 +93,7 @@
             font-size: 3.5rem;
             color: #fff;
             line-height: 1;
-            /* 左端の列は左寄せのまま */
+            text-align: center; /* ★気温も中央揃え */
         }
         .cw-icon {
             text-align: center; /* アイコン中央揃え */
@@ -105,7 +108,7 @@
         .cw-rain {
             font-size: 1.8rem; 
             color: #64b5f6; 
-            text-align: center; /* ★右寄せをやめて中央揃えに変更 */
+            text-align: center; /* 中央揃え */
         }
 
         /* 3. Forecast List Area */
@@ -115,11 +118,15 @@
             gap: 1.5rem;
             padding-top: 1rem;
             border-top: 1px solid #333;
+            width: 100%;
         }
         .forecast-row {
             font-size: 1.6rem;
         }
-        .fc-date { font-weight: bold; }
+        .fc-date { 
+            font-weight: bold; 
+            text-align: center; /* ★日付も中央揃え */
+        }
         .fc-icon { text-align: center; }
         .fc-icon svg { width: 45px; height: 45px; fill: #ccc; vertical-align: middle; }
         .fc-hl { 
@@ -129,7 +136,7 @@
         }
         .fc-rain { 
             color: #64b5f6; 
-            text-align: center; /* ★右寄せをやめて中央揃えに変更 */
+            text-align: center; /* 中央揃え */
         }
 
         /* 共通スタイル */
