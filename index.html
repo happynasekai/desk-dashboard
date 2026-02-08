@@ -6,15 +6,10 @@
     <title>Desk Dashboard</title>
     <style>
         /* --- Base & Reset --- */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background-color: #1a1a1a; /* マットなダークグレー */
-            color: #e0e0e0; /* オフホワイト */
+            background-color: #1a1a1a;
+            color: #e0e0e0;
             font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
             height: 100vh;
             width: 100vw;
@@ -25,139 +20,175 @@
         }
 
         /* --- Scaling Container --- */
-        /* 基準サイズ: 1280x720 (Monitor 2) */
         #app-container {
             width: 1280px;
             height: 720px;
-            /* ★iPhone対応: 勝手な縮小・改行を防ぐ強制サイズ指定 */
             min-width: 1280px;
             min-height: 720px;
-            
-            display: flex;
+            display: flex; /* 左右分割 */
             transform-origin: center center;
         }
 
-        /* --- Layout --- */
-        
-        /* 左側：時計エリア (天気削除により元の広さに戻す) */
-        .clock-section {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border-right: 1px solid #333;
-            padding: 2rem;
-        }
-
-        /* 右側：カレンダーエリア */
-        .calendar-section {
-            flex: 1.2;
+        /* --- Left Panel: Information Hub --- */
+        .info-panel {
+            flex: 1; /* 左半分 */
             padding: 3rem;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: center; /* 垂直方向中央寄せ */
+            align-items: flex-start; /* 水平方向左寄せ */
+            border-right: 1px solid #333;
+            background-color: #1e1e1e;
         }
 
-        /* --- Clock Styles --- */
+        /* 3つのエリアをまとめるラッパー */
+        .info-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 4rem;
+        }
+
+        /* 1. Clock Area */
+        .clock-area {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            color: #ffffff; /* 完全な白 */
+        }
         .clock-date {
-            font-size: 1.5rem;
-            color: #888;
-            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
             letter-spacing: 0.05em;
-            white-space: nowrap; /* iPhoneでの改行防止 */
+            font-weight: bold;
         }
-
         .clock-time {
             font-family: 'Courier New', Courier, monospace;
             font-size: 5rem;
             font-weight: bold;
-            color: #f0f0f0;
             letter-spacing: 0.05em;
-            white-space: nowrap; /* iPhoneでの改行防止 */
+            line-height: 1;
         }
 
-        /* --- Calendar Styles --- */
+        /* --- Weather Layout Grid (Updated) --- */
+        /* 列幅を調整して等間隔に見えるように修正 */
+        .weather-grid-row {
+            display: grid;
+            /* [現在気温] [アイコン] [最高/最低] [降水確率] */
+            grid-template-columns: 1.2fr 1.0fr 1.8fr 1.0fr; 
+            align-items: center;
+            width: 100%;
+        }
+
+        /* 2. Today's Weather Area */
+        .current-weather-row {
+            font-size: 2.5rem;
+        }
+        .cw-temp-main {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 3.5rem;
+            color: #fff;
+            line-height: 1;
+            /* 左端の列は左寄せのまま */
+        }
+        .cw-icon {
+            text-align: center; /* アイコン中央揃え */
+        }
+        .cw-icon svg { width: 60px; height: 60px; fill: #ddd; vertical-align: middle; }
+        
+        .cw-hl {
+            font-family: 'Courier New', monospace; 
+            font-size: 2rem;
+            text-align: center; /* 最高最低も中央揃え */
+        }
+        .cw-rain {
+            font-size: 1.8rem; 
+            color: #64b5f6; 
+            text-align: center; /* ★右寄せをやめて中央揃えに変更 */
+        }
+
+        /* 3. Forecast List Area */
+        .forecast-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #333;
+        }
+        .forecast-row {
+            font-size: 1.6rem;
+        }
+        .fc-date { font-weight: bold; }
+        .fc-icon { text-align: center; }
+        .fc-icon svg { width: 45px; height: 45px; fill: #ccc; vertical-align: middle; }
+        .fc-hl { 
+            font-family: 'Courier New', monospace; 
+            font-size: 1.6rem; 
+            text-align: center;
+        }
+        .fc-rain { 
+            color: #64b5f6; 
+            text-align: center; /* ★右寄せをやめて中央揃えに変更 */
+        }
+
+        /* 共通スタイル */
+        .temp-high { color: #e0e0e0; font-weight: bold; }
+        .temp-low { color: #888; }
+        
+        /* --- Right Panel: Calendar --- */
+        .calendar-panel {
+            flex: 1; /* 右半分 */
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
         .cal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2.5rem;
+            margin-bottom: 2rem;
             width: 100%;
-            max-width: 650px;
-            margin-left: auto;
-            margin-right: auto;
+            padding: 0 1rem;
         }
-
         .cal-title {
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: normal;
             letter-spacing: 0.1em;
-            white-space: nowrap; /* iPhoneでの改行防止 */
+            white-space: nowrap;
         }
-
-        .cal-controls {
-            white-space: nowrap; /* ボタンエリアの改行防止 */
-        }
-
         .cal-controls button {
             background: none;
             border: 1px solid #444;
             color: #aaa;
-            padding: 0.6rem 1.2rem;
+            padding: 0.5rem 1rem;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.9rem;
             border-radius: 4px;
-            transition: all 0.2s ease;
             margin-left: 0.5rem;
         }
+        .cal-controls button:hover { border-color: #888; color: #fff; }
+        .cal-controls button#today-btn { border-color: #555; background-color: #252525; }
 
-        .cal-controls button:hover {
-            border-color: #888;
-            color: #fff;
-        }
-
-        .cal-controls button#today-btn {
-            border-color: #555;
-            background-color: #252525;
-        }
-
-        /* カレンダーグリッド */
         .cal-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 12px;
+            gap: 8px;
             text-align: center;
             width: 100%;
-            max-width: 650px;
-            margin-left: auto;
-            margin-right: auto;
         }
-
         .cal-cell {
-            padding: 1.2rem 0;
-            font-size: 1.5rem;
+            padding: 1rem 0;
+            font-size: 1.3rem;
             color: #bbb;
             border-radius: 6px;
-            position: relative;
-            white-space: nowrap; /* iPhoneでの改行防止 */
         }
-
-        /* 曜日ヘッダー */
-        .day-name {
-            font-size: 1.2rem;
-            color: #666;
-            padding-bottom: 1rem;
-        }
-
-        /* 今日の日付の強調 */
-        .is-today {
-            background-color: #e0e0e0;
-            color: #1a1a1a !important;
-            font-weight: bold;
-        }
-
-        /* 土日・祝日の色 */
+        .day-name { font-size: 1rem; color: #666; padding-bottom: 0.5rem; }
+        .is-today { background-color: #e0e0e0; color: #1a1a1a !important; font-weight: bold; }
+        
+        /* Color Utilities */
         .sunday, .holiday { color: #cf6679; }
         .saturday { color: #64b5f6; }
 
@@ -167,12 +198,30 @@
 
     <div id="app-container">
         
-        <div class="clock-section">
-            <div id="date-display" class="clock-date"></div>
-            <div id="time-display" class="clock-time"></div>
+        <div class="info-panel">
+            <div class="info-wrapper">
+                
+                <div class="clock-area">
+                    <div id="clock-date" class="clock-date"></div>
+                    <div id="clock-time" class="clock-time"></div>
+                </div>
+
+                <div class="weather-grid-row current-weather-row">
+                    <div id="cw-temp" class="cw-temp-main">--°</div>
+                    <div class="cw-icon" id="cw-icon"></div>
+                    <div class="cw-hl">
+                        <span class="temp-high" id="cw-high">--</span>° / <span class="temp-low" id="cw-low">--</span>°
+                    </div>
+                    <div class="cw-rain" id="cw-rain">--%</div>
+                </div>
+
+                <div class="forecast-list" id="forecast-list">
+                    </div>
+
+            </div>
         </div>
 
-        <div class="calendar-section">
+        <div class="calendar-panel">
             <div class="cal-header">
                 <h2 id="cal-title" class="cal-title"></h2>
                 <div class="cal-controls">
@@ -188,168 +237,180 @@
     </div>
 
     <script>
-        // --- 0. オートスケーリング機能 ---
+        // --- 0. オートスケーリング ---
         function fitToScreen() {
             const baseWidth = 1280;
             const baseHeight = 720;
-            
-            // 画面の幅・高さ
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
-
-            // 縦横どちらかがはみ出さないように倍率を計算 (Fit)
-            const scaleX = windowWidth / baseWidth;
-            const scaleY = windowHeight / baseHeight;
-            const scale = Math.min(scaleX, scaleY);
-
-            // コンテナに倍率を適用
-            const container = document.getElementById('app-container');
-            container.style.transform = `scale(${scale})`;
+            const scale = Math.min(window.innerWidth / baseWidth, window.innerHeight / baseHeight);
+            document.getElementById('app-container').style.transform = `scale(${scale})`;
         }
-
-        // 初回ロード時と、画面サイズ変更時に実行
         window.addEventListener('resize', fitToScreen);
         window.addEventListener('load', fitToScreen);
 
-
-        // --- 1. 時計機能 ---
-        function updateClock() {
-            const now = new Date();
-            const days = ['日', '月', '火', '水', '木', '金', '土'];
-            const dateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日(${days[now.getDay()]})`;
-            
-            const h = String(now.getHours()).padStart(2, '0');
-            const m = String(now.getMinutes()).padStart(2, '0');
-            const s = String(now.getSeconds()).padStart(2, '0');
-            const timeStr = `${h}:${m}:${s}`;
-
-            document.getElementById('date-display').textContent = dateStr;
-            document.getElementById('time-display').textContent = timeStr;
-        }
-
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        // --- 2. 祝日判定ロジック ---
+        // --- 共通: 祝日判定ロジック ---
         function getJapaneseHolidays(year, month) {
             const holidays = {}; 
-            const fixedHolidays = [
-                { m: 0, d: 1, name: "元日" }, { m: 1, d: 11, name: "建国記念の日" }, { m: 1, d: 23, name: "天皇誕生日" },
-                { m: 3, d: 29, name: "昭和の日" }, { m: 4, d: 3, name: "憲法記念日" }, { m: 4, d: 4, name: "みどりの日" },
-                { m: 4, d: 5, name: "こどもの日" }, { m: 7, d: 11, name: "山の日" }, { m: 10, d: 3, name: "文化の日" },
-                { m: 10, d: 23, name: "勤労感謝の日" }
-            ];
+            const fixed = [{m:0,d:1,n:"元日"},{m:1,d:11,n:"建国記念の日"},{m:1,d:23,n:"天皇誕生日"},{m:3,d:29,n:"昭和の日"},{m:4,d:3,n:"憲法記念日"},{m:4,d:4,n:"みどりの日"},{m:4,d:5,n:"こどもの日"},{m:7,d:11,n:"山の日"},{m:10,d:3,n:"文化の日"},{m:10,d:23,n:"勤労感謝の日"}];
+            const happy = [{m:0,n:2,n:"成人の日"},{m:6,n:3,n:"海の日"},{m:8,n:3,n:"敬老の日"},{m:9,n:2,n:"スポーツの日"}];
+            function getNthMonday(y,m,n){ const fd=new Date(y,m,1).getDay(); return 1+(8-fd)%7+(n-1)*7; }
+            function getEq(y,t){ return Math.floor((t=='spring'?20.8431:23.2488)+0.242194*(y-1980)-Math.floor((y-1980)/4)); }
+            
+            fixed.forEach(h=>{if(h.m===month)holidays[h.d]=h.n;});
+            happy.forEach(h=>{if(h.m===month)holidays[getNthMonday(year,month,h.n)]=h.n;});
+            if(month===2)holidays[getEq(year,'spring')]="春分の日";
+            if(month===8)holidays[getEq(year,'autumn')]="秋分の日";
 
-            function getNthMonday(y, m, n) {
-                const firstDay = new Date(y, m, 1).getDay();
-                const firstMonday = 1 + (8 - firstDay) % 7;
-                return firstMonday + (n - 1) * 7;
-            }
-            const happyMondays = [
-                { m: 0, n: 2, name: "成人の日" }, { m: 6, n: 3, name: "海の日" },
-                { m: 8, n: 3, name: "敬老の日" }, { m: 9, n: 2, name: "スポーツの日" }
-            ];
-
-            function getEquinoxDay(y, type) {
-                if (type === 'spring') return Math.floor(20.8431 + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4));
-                return Math.floor(23.2488 + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4));
-            }
-
-            fixedHolidays.forEach(h => { if (h.m === month) holidays[h.d] = h.name; });
-            happyMondays.forEach(h => { if (h.m === month) holidays[getNthMonday(year, month, h.n)] = h.name; });
-            if (month === 2) holidays[getEquinoxDay(year, 'spring')] = "春分の日";
-            if (month === 8) holidays[getEquinoxDay(year, 'autumn')] = "秋分の日";
-
-            const lastDay = new Date(year, month + 1, 0).getDate();
-            for (let d = 1; d <= lastDay; d++) {
-                if (holidays[d]) {
-                    const date = new Date(year, month, d);
-                    if (date.getDay() === 0) {
-                        let nextDay = d + 1;
-                        while (holidays[nextDay] && nextDay <= lastDay) nextDay++;
-                        if (nextDay <= lastDay) holidays[nextDay] = "振替休日";
+            const ld = new Date(year, month+1, 0).getDate();
+            for(let d=1;d<=ld;d++){
+                if(holidays[d]){
+                    const dt=new Date(year,month,d);
+                    if(dt.getDay()===0){
+                        let nd=d+1; while(holidays[nd]&&nd<=ld)nd++;
+                        if(nd<=ld)holidays[nd]="振替休日";
                     }
                 }
             }
-
-            for (let d = 2; d < lastDay; d++) {
-                if (holidays[d-1] && holidays[d+1] && !holidays[d]) {
-                    const date = new Date(year, month, d);
-                    if (date.getDay() !== 0) holidays[d] = "国民の休日";
+            for(let d=2;d<ld;d++){
+                if(holidays[d-1]&&holidays[d+1]&&!holidays[d]){
+                    const dt=new Date(year,month,d); if(dt.getDay()!==0)holidays[d]="国民の休日";
                 }
             }
             return holidays;
         }
 
-        // --- 3. カレンダー描画機能 ---
+        // --- 1. 時計機能 (白文字統一) ---
+        function updateClock() {
+            const now = new Date();
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            const dateHTML = `${now.getFullYear()}年 ${now.getMonth() + 1}月 ${now.getDate()}日(${days[now.getDay()]})`;
+            
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+
+            document.getElementById('clock-date').innerHTML = dateHTML;
+            document.getElementById('clock-time').textContent = `${h}:${m}:${s}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- 2. 天気予報 (グリッド等間隔) ---
+        // 横浜市緑区長津田
+        const WEATHER_URL = "https://api.open-meteo.com/v1/forecast?latitude=35.5316&longitude=139.4907&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=5";
+
+        function getWeatherIconPath(code) {
+            const icons = {
+                sun: '<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 9c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zM12 1v2m0 18v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" fill="none"/>',
+                cloud: '<path d="M19.36 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.64-4.96z" fill="currentColor"/>',
+                rain: '<path d="M19.36 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.64-4.96zM11 15l-2 4m4-4l-2 4m4-4l-2 4" fill="currentColor" stroke="currentColor" stroke-width="1"/>',
+                snow: '<path d="M12 2L12 22M2 12L22 12M5 5L19 19M5 19L19 5" stroke="currentColor" stroke-width="2" />',
+                thunder: '<path d="M7 14l5-9v5h4l-5 9v-5H7z" fill="currentColor"/>'
+            };
+            if (code === 0) return icons.sun;
+            if (code <= 3 || (code >= 45 && code <= 48)) return icons.cloud;
+            if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return icons.rain;
+            if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) return icons.snow;
+            if (code >= 95) return icons.thunder;
+            return icons.cloud;
+        }
+
+        async function updateWeather() {
+            try {
+                const response = await fetch(WEATHER_URL);
+                const data = await response.json();
+
+                // 1. 今日の天気 (Index 0)
+                const current = data.current_weather;
+                const daily0 = {
+                    high: Math.round(data.daily.temperature_2m_max[0]),
+                    low: Math.round(data.daily.temperature_2m_min[0]),
+                    rain: data.daily.precipitation_probability_max[0],
+                    code: data.daily.weathercode[0]
+                };
+
+                document.getElementById('cw-temp').textContent = Math.round(current.temperature) + "°";
+                document.getElementById('cw-icon').innerHTML = `<svg viewBox="0 0 24 24">${getWeatherIconPath(current.weathercode)}</svg>`;
+                document.getElementById('cw-high').textContent = daily0.high;
+                document.getElementById('cw-low').textContent = daily0.low;
+                document.getElementById('cw-rain').textContent = daily0.rain + "%";
+
+                // 2. 3日間予報リスト
+                const listContainer = document.getElementById('forecast-list');
+                listContainer.innerHTML = '';
+                const days = ['日', '月', '火', '水', '木', '金', '土'];
+                const baseDate = new Date();
+
+                for (let i = 1; i <= 3; i++) {
+                    const targetDate = new Date();
+                    targetDate.setDate(baseDate.getDate() + i);
+                    
+                    const m = targetDate.getMonth() + 1;
+                    const d = targetDate.getDate();
+                    const w = targetDate.getDay();
+                    
+                    const hols = getJapaneseHolidays(targetDate.getFullYear(), targetDate.getMonth());
+                    const isHol = hols[d] !== undefined;
+                    
+                    let dateClass = '';
+                    if (w === 0 || isHol) dateClass = 'sunday';
+                    else if (w === 6) dateClass = 'saturday';
+
+                    const high = Math.round(data.daily.temperature_2m_max[i]);
+                    const low = Math.round(data.daily.temperature_2m_min[i]);
+                    const rain = data.daily.precipitation_probability_max[i];
+                    const code = data.daily.weathercode[i];
+
+                    const row = document.createElement('div');
+                    row.className = 'weather-grid-row forecast-row';
+                    row.innerHTML = `
+                        <div class="fc-date ${dateClass}">${m}/${d}(${days[w]})</div>
+                        <div class="fc-icon"><svg viewBox="0 0 24 24">${getWeatherIconPath(code)}</svg></div>
+                        <div class="fc-hl"><span class="temp-high">${high}</span>° / <span class="temp-low">${low}</span>°</div>
+                        <div class="fc-rain">${rain}%</div>
+                    `;
+                    listContainer.appendChild(row);
+                }
+
+            } catch (e) { console.error(e); }
+        }
+        updateWeather();
+        setInterval(updateWeather, 30 * 60 * 1000);
+
+        // --- 3. カレンダー機能 ---
         const today = new Date();
         let currentYear = today.getFullYear();
         let currentMonth = today.getMonth();
-
         const calTitle = document.getElementById('cal-title');
         const calGrid = document.getElementById('cal-grid');
 
         function renderCalendar(year, month) {
             calGrid.innerHTML = '';
             calTitle.textContent = `${year}年 ${month + 1}月`;
-
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const holidays = getJapaneseHolidays(year, month);
             
-            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
-            dayNames.forEach((d, index) => {
-                const div = document.createElement('div');
-                div.className = 'day-name';
-                if (index === 0) div.classList.add('sunday');
-                if (index === 6) div.classList.add('saturday');
-                div.textContent = d;
-                calGrid.appendChild(div);
+            ['日','月','火','水','木','金','土'].forEach((d,i)=>{
+                const div=document.createElement('div'); div.className='day-name';
+                if(i===0)div.classList.add('sunday'); if(i===6)div.classList.add('saturday');
+                div.textContent=d; calGrid.appendChild(div);
             });
-
-            for (let i = 0; i < firstDay.getDay(); i++) {
-                const div = document.createElement('div');
-                div.className = 'cal-cell';
-                calGrid.appendChild(div);
-            }
-
-            for (let d = 1; d <= lastDay.getDate(); d++) {
-                const div = document.createElement('div');
-                div.className = 'cal-cell';
-                div.textContent = d;
-
-                const checkDate = new Date(year, month, d);
-                const dayOfWeek = checkDate.getDay();
-                const isHoliday = holidays[d] !== undefined;
-
-                if (dayOfWeek === 0) div.classList.add('sunday');
-                else if (dayOfWeek === 6) div.classList.add('saturday');
-                if (isHoliday) div.classList.add('holiday');
-
-                if (year === today.getFullYear() && month === today.getMonth() && d === today.getDate()) {
-                    div.classList.add('is-today');
-                }
+            for(let i=0;i<firstDay.getDay();i++) calGrid.appendChild(document.createElement('div'));
+            for(let d=1;d<=lastDay.getDate();d++){
+                const div=document.createElement('div'); div.className='cal-cell'; div.textContent=d;
+                const dt=new Date(year,month,d);
+                if(dt.getDay()===0)div.classList.add('sunday');
+                if(dt.getDay()===6)div.classList.add('saturday');
+                if(holidays[d])div.classList.add('holiday');
+                if(year===today.getFullYear()&&month===today.getMonth()&&d===today.getDate())div.classList.add('is-today');
                 calGrid.appendChild(div);
             }
         }
+        document.getElementById('prev-btn').addEventListener('click', ()=>{currentMonth--;if(currentMonth<0){currentMonth=11;currentYear--;}renderCalendar(currentYear,currentMonth);});
+        document.getElementById('next-btn').addEventListener('click', ()=>{currentMonth++;if(currentMonth>11){currentMonth=0;currentYear++;}renderCalendar(currentYear,currentMonth);});
+        document.getElementById('today-btn').addEventListener('click', ()=>{currentYear=today.getFullYear();currentMonth=today.getMonth();renderCalendar(currentYear,currentMonth);});
+        renderCalendar(currentYear,currentMonth);
 
-        document.getElementById('prev-btn').addEventListener('click', () => {
-            currentMonth--;
-            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-            renderCalendar(currentYear, currentMonth);
-        });
-        document.getElementById('next-btn').addEventListener('click', () => {
-            currentMonth++;
-            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-            renderCalendar(currentYear, currentMonth);
-        });
-        document.getElementById('today-btn').addEventListener('click', () => {
-            currentYear = today.getFullYear();
-            currentMonth = today.getMonth();
-            renderCalendar(currentYear, currentMonth);
-        });
-
-        renderCalendar(currentYear, currentMonth);
     </script>
 </body>
 </html>
