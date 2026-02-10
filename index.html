@@ -35,14 +35,14 @@
             padding: 2rem;
             display: flex;
             flex-direction: column;
-            justify-content: center; /* 垂直中央 */
-            align-items: center;     /* 水平中央 */
+            justify-content: center;
+            align-items: center;
             border-right: 1px solid #333;
         }
 
         /* 1. Clock Area */
         .clock-area {
-            margin-bottom: 3rem; /* カレンダーとの距離 */
+            margin-bottom: 3rem;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -62,10 +62,10 @@
             line-height: 1;
         }
 
-        /* 2. Calendar Area (Moved to Left) */
+        /* 2. Calendar Area */
         .calendar-wrapper {
             width: 100%;
-            max-width: 550px; /* 少しコンパクトに */
+            max-width: 550px;
         }
         .cal-header {
             display: flex;
@@ -113,32 +113,32 @@
         /* --- Right Panel: Weather Hub --- */
         .right-panel {
             flex: 1; /* 右半分 */
-            padding: 3rem;
+            padding: 3rem; /* 上下の余白 */
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: center; /* パネル全体の中央寄せ */
             align-items: center;
-            background-color: #1e1e1e; /* エリア区別のための背景色 */
+            background-color: #1e1e1e;
         }
 
         .weather-wrapper {
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 2.5rem; /* 今日と予報の間隔 */
+            /* ★変更点1: 今日と明日の間隔を狭めて「明日」を上に引き上げる */
+            gap: 1.5rem; 
         }
 
         /* 3. Today's Weather */
         .weather-grid-row {
             display: grid;
-            /* [現在気温] [アイコン] [最高/最低] [降水確率] */
             grid-template-columns: 1.2fr 1.0fr 1.8fr 1.0fr; 
             align-items: center;
             width: 100%;
         }
         
         .current-weather-row {
-            font-size: 2.2rem; /* 少しだけサイズ調整 */
+            font-size: 2.2rem;
         }
         .cw-temp-main {
             font-family: 'Courier New', monospace;
@@ -157,13 +157,15 @@
         .forecast-list {
             display: flex;
             flex-direction: column;
-            gap: 1.0rem; /* 6行入るので間隔を詰める */
-            padding-top: 1.5rem;
+            /* ★変更点2: リスト間の間隔を広げて「6日後」を下に押し下げる & 等間隔化 */
+            gap: 2.2rem; 
+            
+            padding-top: 1.0rem;
             border-top: 1px solid #333;
             width: 100%;
         }
         .forecast-row {
-            font-size: 1.4rem; /* 6行表示のために少し小さく */
+            font-size: 1.4rem;
         }
         .fc-date { font-weight: bold; text-align: center; }
         .fc-icon { text-align: center; }
@@ -284,7 +286,7 @@
         updateClock();
 
         // --- 2. 天気予報 (6日間) ---
-        // forecast_days=8 に設定 (今日+余裕を持って取得)
+        // forecast_days=8
         const WEATHER_URL = "https://api.open-meteo.com/v1/forecast?latitude=35.5316&longitude=139.4907&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=8";
 
         function getWeatherIconPath(code) {
@@ -308,7 +310,7 @@
                 const response = await fetch(WEATHER_URL);
                 const data = await response.json();
 
-                // 1. 今日の天気 (Index 0)
+                // 1. 今日の天気
                 const current = data.current_weather;
                 const daily0 = {
                     high: Math.round(data.daily.temperature_2m_max[0]),
@@ -323,13 +325,12 @@
                 document.getElementById('cw-low').textContent = daily0.low;
                 document.getElementById('cw-rain').textContent = daily0.rain + "%";
 
-                // 2. 週間予報リスト (Index 1〜6: 6日間)
+                // 2. 週間予報リスト
                 const listContainer = document.getElementById('forecast-list');
                 listContainer.innerHTML = '';
                 const days = ['日', '月', '火', '水', '木', '金', '土'];
                 const baseDate = new Date();
 
-                // 1日後(明日)から6日後までループ
                 for (let i = 1; i <= 6; i++) {
                     const targetDate = new Date();
                     targetDate.setDate(baseDate.getDate() + i);
